@@ -1,0 +1,38 @@
+#!/usr/bin/env ruby
+
+require 'byebug'
+require_relative './helpers/logger'
+require_relative './helpers/runner'
+require_relative './helpers/bluetooth'
+require_relative './helpers/pulseaudio'
+require_relative './helpers/spotify'
+require_relative './helpers/config_manager'
+require_relative './commands/init'
+require_relative './commands/bluetooth'
+require_relative './commands/spotify'
+
+def caller
+  command_class.call
+end
+
+def usage
+  puts "Usage:
+    multiroom init
+    multiroom bluetooth [options] [ROOMS]
+    multiroom spotify [options] [ROOMS]
+"
+end
+
+def command_class
+  Object.const_get("Multiroom::Commands::#{@command.capitalize}")
+rescue
+  usage
+  exit 1
+end
+
+def main
+  @command = ARGV.shift
+  caller
+end
+
+main

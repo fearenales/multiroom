@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+# Script from https://github.com/terlar/docker-spotify-pulseaudio
+# Also inspired by https://github.com/jessfraz/dockerfiles/blob/master/spotify/Dockerfile
+
+set -e
+
+APPUSER=$1
+ROOM=$2
+PULSEAUDIO_SINK=$3
+PULSEAUDIO_SOURCE=$4
+
+if [[ -n "$(docker ps -qaf "name=spotify-$APPUSER-$ROOM")" ]]; then
+	docker restart "spotify-$APPUSER-$ROOM"
+else
+	USER_UID=$(id -u)
+	USER_GID=$(id -g)
+	xhost "si:localuser:${USER}"
+
+	[[ ${DBUS_SESSION_BUS_ADDRESS} =~ 'unix:path'\
+		 && -S ${DBUS_SESSION_BUS_ADDRESS#*=} ]]\
+		 && DBUS=${DBUS_SESSION_BUS_ADDRESS#*=}
+
+	docker run -d --name "spotify-$USER-$ROOM" \
+		-e "USER_UID=${USER_UID}" \
+		-e "USER_GID=${USER_GID}" \
+		-e "DISPLAY=unix${DISPLAY}" \
+		-e "PULSE_SINK=${PULSEAUDIO_SINK}" \
+		-e "PULSE_SOURCE=${PULSEAUDIO_SOURCE}" \
+		-v "/tmp/.X11-unix:/tmp/.X11-unix:ro" \
+		-v "/run/user/${USER_UID}/pulse:/run/pulse:ro" \
+		${DBUS:+-v "${DBUS}:/run/dbus"} \
+		${DBUS:+-e "DBUS_SESSION_BUS_ADDRESS=/run/dbus"} \
+		--device /dev/dri \
+		--hostname $ROOM \
+		spotify
+fi
