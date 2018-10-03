@@ -49,7 +49,7 @@ module Multiroom
       end
 
       def self.setup(devices)
-        create_combined_sink(devices)
+        create_combined_sink(devices) if combined_module_id == ""
         create_loopback_module
         devices.each do |device|
           sync_audio_stream(device)

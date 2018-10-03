@@ -1,0 +1,26 @@
+{
+  "name": "multiroom-http",
+  "version": "1.0.0",
+  "description": "HTTP server for controlling a multiroom audio setup using regular bluetooth speakers",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fearenales/multiroom.git"
+  },
+  "author": "Felipe Arenales",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fearenales/multiroom/issues"
+  },
+  "homepage": "https://github.com/fearenales/multiroom#readme",
+  "dependencies": {
+    "express": "^4.16.3",
+    "nodemon": "^1.18.4",
+    "request": "^2.88.0",
+    "spotify-web-api-node": "^4.0.0"
+  }
+}

@@ -96,7 +96,7 @@ module Multiroom
         return unless status?
         controller, device = config(room).slice(:controller, :device).values
         connected = Multiroom::Helpers::Bluetooth.connected?(controller, device)
-        status = connected ? 'connected' : 'disconnect'
+        status = connected ? 'connected' : 'disconnected'
         puts "#{room}: #{status}"
       end
 
