@@ -20,10 +20,12 @@ app.get('/bluetooth/:action', function (req, res) {
   res.send(result);
 });
 
+const redirectBaseUri = process.env.EXTERNAL_TUNNEL_URL || 'https://example.com'
+
 const spotifyApi = new SpotifyWebApi({
   clientId: process.env.SPOTIFY_CLIENT_ID,
   clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-  redirectUri: 'https://example.com/callback'
+  redirectUri: `${redirectBaseUri}/spotify/auth/token`
 });
 
 if (process.env.SPOTIFY_ACCESS_TOKEN) {
@@ -46,25 +48,27 @@ app.get('/spotify/devices', function (req, res) {
 const findSpotifyDevice = (deviceName) => {
   return spotifyApi.getMyDevices().then((response) => {
     return response.body.devices.find((device) => {
-      device.name.toUpperCase() === deviceName.toUpperCase();
+      return device.name.toUpperCase() === deviceName.toUpperCase();
     });
   });
 }
 
 app.get('/spotify/transfer', function (req, res) {
   const deviceName = req.query.device;
-  const device = findSpotifyDevice(deviceName);
-  if (!device) {
-    return res.status(404).send(`Device ${deviceName} not found`);
-  }
-  spotifyApi.transferMyPlayback({
-    device_ids: [device.id],
-    play: true,
-  }).then(() => {
-    res.send('ok');
-  })
-  .catch((err) => {
-    res.send(err);
+  return findSpotifyDevice(deviceName).then((device) => {
+    console.log(device);
+    if (!device) {
+      return res.status(404).send(`Device ${deviceName} not found`);
+    }
+    return spotifyApi.transferMyPlayback({
+      deviceIds: [device.id],
+      play: true,
+    }).then(() => {
+      res.send('ok');
+    })
+    .catch((err) => {
+      res.send(err);
+    });
   });
 });
 
@@ -75,7 +79,7 @@ const writeEnv = (key, value) => {
   }); 
 }
 
-app.get('/spotify/setup', function(req, res) {
+app.get('/spotify/auth/token', function(req, res) {
   spotifyApi.authorizationCodeGrant(req.query.code).then((data) => {
     writeEnv('SPOTIFY_ACCESS_TOKEN', data.body['access_token']);
     writeEnv('SPOTIFY_REFRESH_TOKEN', data.body['refresh_token']);
@@ -88,9 +92,9 @@ app.get('/spotify/setup', function(req, res) {
   });
 });
 
-app.get('/spotify/token', function(req, res) {
-  const authorizeURL = spotifyApi.createAuthorizeURL(['user-read-playback-state'], '');
-  res.send(authorizeURL);
+app.get('/spotify/auth', function(req, res) {
+  const authorizeURL = spotifyApi.createAuthorizeURL(['user-read-playback-state', 'user-modify-playback-state'], '');
+  res.redirect(authorizeURL);
 });
 
 app.listen(3000);
