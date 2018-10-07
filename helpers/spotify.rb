@@ -7,7 +7,7 @@ module Multiroom
       def self.start(user, room, sink, source)
         return if !running(user, room).empty?
         logger.info("Starting Spotify for user #{user} at room #{room}")
-        Runner.run("scripts/spotify #{user} #{room} #{sink} #{source} &")
+        Runner.spawn("#{File.expand_path(File.dirname(__FILE__))}/../scripts/spotify '#{user}' '#{room}' #{sink} #{source}")
       end
 
       def self.stop(user = '*', room = '*')

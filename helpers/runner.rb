@@ -10,6 +10,11 @@ module Multiroom
         result
       end
 
+      def self.spawn(command)
+        logger.debug(command)
+        Process.spawn(command)
+      end
+
       private_class_method
 
       def self.logger

@@ -24,7 +24,7 @@ module Multiroom
       private_class_method
       def self.selected_rooms
         return ARGV unless ARGV.empty?
-        Multiroom::Helpers::ConfigManager.rooms + [ALL_ROOMS]
+        Multiroom::Helpers::ConfigManager.rooms
       end
 
       def self.perform(user, room)
@@ -34,6 +34,13 @@ module Multiroom
       end
 
       def self.start(user, room)
+        unless Multiroom::Helpers::Spotify.running?(user, 'Home')
+          do_start(user, 'Home')
+        end
+        do_start(user, room)
+      end
+
+      def self.do_start(user, room)
         device = config(room) ? config(room)[:device] : nil
         sink = Multiroom::Helpers::Pulseaudio.sink_name(device)
         source = Multiroom::Helpers::Pulseaudio.source_name(device)
@@ -41,6 +48,14 @@ module Multiroom
       end
 
       def self.stop(user, room)
+        do_stop(user, room)
+        if Multiroom::Helpers::Spotify.running?(user, 'Home') &&
+          Multiroom::Helpers::Spotify.running(user).count == 1
+          do_stop(user, 'Home')
+        end
+      end
+
+      def self.do_stop(user, room)
         Multiroom::Helpers::Spotify.stop(user, room)
       end
 

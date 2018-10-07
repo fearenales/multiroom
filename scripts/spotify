@@ -5,13 +5,15 @@
 
 set -e
 
-APPUSER=$1
-ROOM=$2
+APPUSER="$1"
+ROOM="$2"
 PULSEAUDIO_SINK=$3
 PULSEAUDIO_SOURCE=$4
 
-if [[ -n "$(docker ps -qaf "name=spotify-$APPUSER-$ROOM")" ]]; then
-	docker restart "spotify-$APPUSER-$ROOM"
+CONTAINER_NAME=$(echo "spotify-$USER-$ROOM" | sed 's/\ /_/')
+
+if [[ -n "$(docker ps -qaf "name=${CONTAINER_NAME}")" ]]; then
+	docker restart "${CONTAINER_NAME}"
 else
 	USER_UID=$(id -u)
 	USER_GID=$(id -g)
@@ -21,7 +23,7 @@ else
 		 && -S ${DBUS_SESSION_BUS_ADDRESS#*=} ]]\
 		 && DBUS=${DBUS_SESSION_BUS_ADDRESS#*=}
 
-	docker run -d --name "spotify-$USER-$ROOM" \
+	docker run -d --name "$CONTAINER_NAME" \
 		-e "USER_UID=${USER_UID}" \
 		-e "USER_GID=${USER_GID}" \
 		-e "DISPLAY=unix${DISPLAY}" \
@@ -32,6 +34,6 @@ else
 		${DBUS:+-v "${DBUS}:/run/dbus"} \
 		${DBUS:+-e "DBUS_SESSION_BUS_ADDRESS=/run/dbus"} \
 		--device /dev/dri \
-		--hostname $ROOM \
+		--hostname "$ROOM" \
 		spotify
 fi

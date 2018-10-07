@@ -35,7 +35,7 @@ module Multiroom
 
       def self.config_for_room(room)
         self.config[:multiroom].detect do |cfg|
-          cfg[:room] == room
+          cfg[:room].downcase == room.downcase
         end
       end
 
